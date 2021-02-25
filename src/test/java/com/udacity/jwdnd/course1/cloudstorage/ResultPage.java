@@ -9,7 +9,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class ResultPage {
 
-    @FindBy(id="success-message")
+    @FindBy(id="successmessage")
     private WebElement successMessage;
 
     private WebDriverWait wait;
@@ -18,9 +18,9 @@ public class ResultPage {
         wait = new WebDriverWait(driver, 20);
     }
     public void clickHere(){
-        System.out.println("he");
+        System.out.println("Inside result: Going to click");
         wait.until(ExpectedConditions.elementToBeClickable(successMessage)).click();
-        System.out.println("done");
+        System.out.println("Clicked result link: going to home page");
     }
 
 }

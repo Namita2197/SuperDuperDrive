@@ -118,9 +118,10 @@ class CloudStorageApplicationTests {
 		homePage.addNewNote(title, description);
 
 		resultPage.clickHere();
+		System.out.println("Routing to home page to open note tab");
 //		WebDriverWait wait = new WebDriverWait(driver, 20);
-//		homePage.clickNoteTab();
-		System.out.println("gettign valuenote tab");
+		homePage.clickNoteTab();
+		System.out.println("getting value from note tab");
 		String titleFetched = homePage.getFirstNoteTitle();
 		String desFetched = homePage.getFirstNoteDescription();
 		assertEquals(title, titleFetched);

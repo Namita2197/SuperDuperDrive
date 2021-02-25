@@ -40,7 +40,7 @@ public class HomePage {
     private WebDriverWait wait;
     public HomePage(WebDriver driver) {
         PageFactory.initElements(driver, this);
-         wait = new WebDriverWait(driver, 20);
+        wait = new WebDriverWait(driver, 20);
     }
     @FindBy(id = "nav-notes-tab")
     private WebElement notesTab;
@@ -117,6 +117,7 @@ public class HomePage {
         wait.until(ExpectedConditions.elementToBeClickable(saveChangesNoteButton)).click();
 //        Thread.sleep(4000);
 //        System.out.println("6");
+        System.out.println("New note added");
     }
 
     public void addNewCredential(String url, String username, String password){
@@ -139,11 +140,11 @@ public class HomePage {
     }
 
     public void clickNoteTab( ) throws InterruptedException {
-        System.out.println("clickNoteTab");
-        wait.until(ExpectedConditions.elementToBeClickable(notesTab)).click();
-        System.out.println("clickNoteTab2");
-//        Thread.sleep(1000);
-//        this.notesTab.click();
+//        wait.until(ExpectedConditions.elementToBeClickable(notesTab)).click();
+        System.out.println("Sleeping");
+        Thread.sleep(3000);
+        this.notesTab.click();
+        System.out.println("Clicked");
     }
 
 
