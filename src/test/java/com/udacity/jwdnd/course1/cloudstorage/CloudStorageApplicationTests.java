@@ -1,19 +1,23 @@
 package com.udacity.jwdnd.course1.cloudstorage;
 
+import com.udacity.jwdnd.course1.cloudstorage.services.CredentialService;
+import com.udacity.jwdnd.course1.cloudstorage.services.EncryptionService;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.*;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CloudStorageApplicationTests {
+	@Autowired
+	EncryptionService encryptionService;
+	@Autowired
+	CredentialService credentialService;
 
 	@LocalServerPort
 	private int port;
@@ -53,7 +57,7 @@ class CloudStorageApplicationTests {
 	}
 
 	@Test
-	public void testUserSignupLogin() throws InterruptedException {
+	public void testUserSignupLogin(){
 		String username = "nami";
 		String password = "qwerty";
 
@@ -92,15 +96,15 @@ class CloudStorageApplicationTests {
 		signupPage.signup("Namita2", "Raghuvanshi2", username, password2);
 		assertEquals("This username already exits! Please try signing up with another username",driver.findElement(By.id("error-msg")).getText());
 	}
-	public void login(){
-
-	}
 
 	@Test
-	public void addNoteTest() throws InterruptedException {
+	public void noteTest(){
 
 		String username = "nami";
 		String password = "qwerty";
+		String title = "testNote";
+		String description = "testDescription";
+		String description2 = "changed description";
 		driver.get(baseURL + "/signup");
 
 		SignupPage signupPage = new SignupPage(driver);
@@ -111,24 +115,85 @@ class CloudStorageApplicationTests {
 		LoginPage loginPage = new LoginPage(driver);
 		loginPage.login(username, password);
 
-		String title = "testNote";
-		String description = "testDescription";
+
 		HomePage homePage = new HomePage(driver);
 		ResultPage resultPage = new ResultPage(driver);
-		homePage.addNewNote(title, description);
 
+		homePage.addNewNote(title, description);
 		resultPage.clickHere();
-		System.out.println("Routing to home page to open note tab");
-//		WebDriverWait wait = new WebDriverWait(driver, 20);
 		homePage.clickNoteTab();
-		System.out.println("getting value from note tab");
 		String titleFetched = homePage.getFirstNoteTitle();
 		String desFetched = homePage.getFirstNoteDescription();
+
+		homePage.editNote(title, description2);
+		resultPage.clickHere();
+		homePage.clickNoteTab();
+		String titleFetched2 = homePage.getFirstNoteTitle();
+		String desFetched2 = homePage.getFirstNoteDescription();
+
+		homePage.deleteNote();
+		resultPage.clickHere();
+		homePage.clickNoteTab();
+		assertThrows(NoSuchElementException.class, () -> {homePage.getFirstNoteTitle();});
+
 		assertEquals(title, titleFetched);
 		assertEquals(description, desFetched);
-
+		assertEquals(title, titleFetched2);
+		assertEquals(description2, desFetched2);
 	}
 
+	@Test
+	public void credentialTest(){
 
+		String username = "nami";
+		String password = "qwerty";
+		String url = "www.udacity.com";
+		String credusername = "nammu";
+		String credpassword = "qwer**";
+		String credpassword2 = "qwerty**";
+		driver.get(baseURL + "/signup");
+
+		SignupPage signupPage = new SignupPage(driver);
+		signupPage.signup("Namita", "Raghuvanshi", username, password);
+
+		driver.get(baseURL+"/login");
+
+		LoginPage loginPage = new LoginPage(driver);
+		loginPage.login(username, password);
+
+
+		HomePage homePage = new HomePage(driver);
+		ResultPage resultPage = new ResultPage(driver);
+
+		homePage.addNewCredential(url, credusername, credpassword);
+		resultPage.clickHere();
+		homePage.clickCredentialTab();
+		String urlFetched = homePage.getFirstCredentialUrl();
+
+		String usernameFetched = homePage.getFirstCredentialUsername();
+		String encryptedPassword = homePage.getFirstCredentialPassword();
+		String decryptedPassword = encryptionService.decryptValue(encryptedPassword, credentialService.getCredentialById(1).getKey());
+
+		WebElement shouldBeDecrypted = homePage.getViewablePassword();
+		String shouldBeDecryptedString = (String) ((JavascriptExecutor) driver).executeScript("return arguments[0].value", shouldBeDecrypted);
+
+		homePage.editCredential(credusername, credpassword2);
+		resultPage.clickHere();
+		homePage.clickCredentialTab();
+		String encryptedPassword2 = homePage.getFirstCredentialPassword();
+		String changedPassword = encryptionService.decryptValue(encryptedPassword2, credentialService.getCredentialById(1).getKey());
+
+		homePage.deleteCredential();
+		resultPage.clickHere();
+		homePage.clickNoteTab();
+		assertThrows(NoSuchElementException.class, () -> {homePage.getFirstCredentialUrl();});
+
+		assertEquals(url, urlFetched);
+		assertEquals(credusername, usernameFetched);
+		assertNotEquals(encryptedPassword, credpassword);
+		assertEquals(credpassword, shouldBeDecryptedString);
+		assertEquals(credpassword, decryptedPassword);
+		assertEquals(credpassword2, changedPassword);
+	}
 
 }

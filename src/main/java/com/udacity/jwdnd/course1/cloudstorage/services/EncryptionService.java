@@ -17,7 +17,6 @@ public class EncryptionService {
     private Logger logger = LoggerFactory.getLogger(EncryptionService.class);
 
     public String encryptValue(String data, String key){
-        System.out.println("arrive in encrpt value");
         byte[] encryptedValue = null;
 
         try {
@@ -29,7 +28,6 @@ public class EncryptionService {
                 | UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException e) {
             logger.error(e.getMessage());
         }
-        System.out.println("jhgfgjwfwfwgfj");
         return Base64.getEncoder().encodeToString(encryptedValue);
 
     }

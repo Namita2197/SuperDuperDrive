@@ -40,7 +40,6 @@ public class HomeController {
         model.addAttribute("allCredentials", credentialService.getCredentials(user));
         model.addAttribute("encryptionService",encryptionService);
         model.addAttribute("allFiles",fileService.getAllFilesByUser(user.getUserid()));
-        System.out.println("here");
         return "home";
     }
 
