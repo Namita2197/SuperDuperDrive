@@ -9,27 +9,6 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class HomePage {
-    //    @FindBy(id = "fileUpload")
-//    private WebElement fileUpload;
-    //
-//
-//
-
-//
-
-//
-//    @FindBy(id = "editCredentialButton")
-//    private WebElement editCredentialButton;
-//
-//    @FindBy(id = "deleteCredentialButton")
-//    private WebElement deleteCredentialButton;
-//
-//
-//    @FindBy(id = "credentialUsernameOnDisplay")
-//    private WebElement credentialUsernameOnDisplay;
-//
-//    @FindBy(id = "credentialPasswordOnDisplay")
-//    private WebElement credentialPasswordOnDisplay;
     private final WebDriver driver;
     private WebDriverWait wait;
     public HomePage(WebDriver driver) {
@@ -51,8 +30,6 @@ public class HomePage {
     private WebElement credentialsTab;
     @FindBy(id = "addCredentialButton")
     private WebElement addCredentialButton;
-//    @FindBy(id="credential-password")
-//    private WebElement credentialPasswordViewable;
     @FindBy(id = "credential-key")
     private WebElement credentialKey;
     @FindBy(id = "credentialUsernameOnDisplay")
@@ -83,6 +60,8 @@ public class HomePage {
     private WebElement deleteCredentialButton;
     @FindBy(id="closeButtonCred")
     private WebElement closeButtonCred;
+    @FindBy(id=" logoutButton")
+    private WebElement logoutButton;
 
     public void addNewNote(String title, String description)  {
         clickNoteTab();
@@ -160,7 +139,9 @@ public class HomePage {
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", credentialsTab);
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", deleteCredentialButton);
     }
-
+    public void logoutUser(){
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", logoutButton);
+    }
 
 
 }

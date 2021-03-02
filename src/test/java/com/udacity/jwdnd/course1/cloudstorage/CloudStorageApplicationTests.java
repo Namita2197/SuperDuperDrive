@@ -10,9 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 
+import javax.sound.midi.ShortMessage;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CloudStorageApplicationTests {
 	@Autowired
 	EncryptionService encryptionService;
@@ -33,7 +36,7 @@ class CloudStorageApplicationTests {
 	@BeforeEach
 	public void beforeEach() {
 		this.driver = new ChromeDriver();
-		baseURL = baseURL = "http://localhost:" + port;
+		baseURL = "http://localhost:" + port;
 	}
 
 	@AfterEach
@@ -41,15 +44,18 @@ class CloudStorageApplicationTests {
 		if (this.driver != null) {
 			driver.quit();
 		}
+
 	}
 
 	@Test
+	@Order(1)
 	public void getLoginPage() {
 		driver.get("http://localhost:" + this.port + "/login");
 		assertEquals("Login", driver.getTitle());
 	}
 
 	@Test
+	@Order(2)
 	public void testUnauthorizedAccess(){
 		driver.get(baseURL+"/home");
 		assertEquals("Login", driver.getTitle());
@@ -57,21 +63,12 @@ class CloudStorageApplicationTests {
 	}
 
 	@Test
+	@Order(3)
 	public void testUserSignupLogin(){
-		String username = "nami";
-		String password = "qwerty";
+		signupUser();
+		assertEquals("Login",driver.getTitle());
 
-
-		driver.get(baseURL + "/signup");
-
-		SignupPage signupPage = new SignupPage(driver);
-		signupPage.signup("Namita", "Raghuvanshi", username, password);
-		assertEquals("You successfully signed up! Please continue to the login page.",driver.findElement(By.id("success-msg")).getText());
-
-		driver.get(baseURL+"/login");
-
-		LoginPage loginPage = new LoginPage(driver);
-		loginPage.login(username, password);
+		loginUser();
 		assertEquals("Home",driver.getTitle());
 
 		driver.findElement(By.id("logoutId")).submit();
@@ -81,7 +78,23 @@ class CloudStorageApplicationTests {
 		assertNotEquals("Home",driver.getTitle());
 	}
 
+	public void loginUser(){
+		String username = "nami";
+		String password = "qwerty";
+		driver.get(baseURL+"/login");
+		LoginPage loginPage = new LoginPage(driver);
+		loginPage.login(username, password);
+	}
+	public void signupUser(){
+		String username = "nami";
+		String password = "qwerty";
+		driver.get(baseURL + "/signup");
+		SignupPage signupPage = new SignupPage(driver);
+		signupPage.signup("Namita", "Raghuvanshi", username, password);
+	}
+
 	@Test
+	@Order(4)
 	public void testDuplicateSignup(){
 		String username = "nami";
 		String password1 = "qwerty1";
@@ -98,23 +111,12 @@ class CloudStorageApplicationTests {
 	}
 
 	@Test
-	public void noteTest(){
-
-		String username = "nami";
-		String password = "qwerty";
+	@Order(5)
+	public void testCreateNote(){
 		String title = "testNote";
 		String description = "testDescription";
-		String description2 = "changed description";
-		driver.get(baseURL + "/signup");
 
-		SignupPage signupPage = new SignupPage(driver);
-		signupPage.signup("Namita", "Raghuvanshi", username, password);
-
-		driver.get(baseURL+"/login");
-
-		LoginPage loginPage = new LoginPage(driver);
-		loginPage.login(username, password);
-
+		loginUser();
 
 		HomePage homePage = new HomePage(driver);
 		ResultPage resultPage = new ResultPage(driver);
@@ -124,43 +126,58 @@ class CloudStorageApplicationTests {
 		homePage.clickNoteTab();
 		String titleFetched = homePage.getFirstNoteTitle();
 		String desFetched = homePage.getFirstNoteDescription();
+		homePage.logoutUser();
+		assertEquals(title, titleFetched);
+		assertEquals(description, desFetched);
+
+	}
+
+	@Test
+	@Order(6)
+	public void testEditNote(){
+		String title = "testNote";
+		String description2 = "changed description";
+
+		loginUser();
+
+		HomePage homePage = new HomePage(driver);
+		ResultPage resultPage = new ResultPage(driver);
 
 		homePage.editNote(title, description2);
 		resultPage.clickHere();
 		homePage.clickNoteTab();
 		String titleFetched2 = homePage.getFirstNoteTitle();
 		String desFetched2 = homePage.getFirstNoteDescription();
+		homePage.logoutUser();
 
-		homePage.deleteNote();
-		resultPage.clickHere();
-		homePage.clickNoteTab();
-		assertThrows(NoSuchElementException.class, () -> {homePage.getFirstNoteTitle();});
-
-		assertEquals(title, titleFetched);
-		assertEquals(description, desFetched);
 		assertEquals(title, titleFetched2);
 		assertEquals(description2, desFetched2);
+
 	}
 
 	@Test
-	public void credentialTest(){
+	@Order(7)
+	public void testDeleteNote(){
+		loginUser();
 
-		String username = "nami";
-		String password = "qwerty";
+		HomePage homePage = new HomePage(driver);
+		ResultPage resultPage = new ResultPage(driver);
+
+		homePage.clickNoteTab();
+		homePage.deleteNote();
+		resultPage.clickHere();
+		homePage.clickNoteTab();
+		homePage.logoutUser();
+		assertThrows(NoSuchElementException.class, () -> {homePage.getFirstNoteTitle();});
+	}
+	@Test
+	@Order(8)
+	public void createCredentialTest(){
 		String url = "www.udacity.com";
 		String credusername = "nammu";
 		String credpassword = "qwer**";
-		String credpassword2 = "qwerty**";
-		driver.get(baseURL + "/signup");
 
-		SignupPage signupPage = new SignupPage(driver);
-		signupPage.signup("Namita", "Raghuvanshi", username, password);
-
-		driver.get(baseURL+"/login");
-
-		LoginPage loginPage = new LoginPage(driver);
-		loginPage.login(username, password);
-
+		loginUser();
 
 		HomePage homePage = new HomePage(driver);
 		ResultPage resultPage = new ResultPage(driver);
@@ -168,32 +185,101 @@ class CloudStorageApplicationTests {
 		homePage.addNewCredential(url, credusername, credpassword);
 		resultPage.clickHere();
 		homePage.clickCredentialTab();
-		String urlFetched = homePage.getFirstCredentialUrl();
 
+		String urlFetched = homePage.getFirstCredentialUrl();
 		String usernameFetched = homePage.getFirstCredentialUsername();
 		String encryptedPassword = homePage.getFirstCredentialPassword();
 		String decryptedPassword = encryptionService.decryptValue(encryptedPassword, credentialService.getCredentialById(1).getKey());
 
 		WebElement shouldBeDecrypted = homePage.getViewablePassword();
 		String shouldBeDecryptedString = (String) ((JavascriptExecutor) driver).executeScript("return arguments[0].value", shouldBeDecrypted);
-
-		homePage.editCredential(credusername, credpassword2);
-		resultPage.clickHere();
-		homePage.clickCredentialTab();
-		String encryptedPassword2 = homePage.getFirstCredentialPassword();
-		String changedPassword = encryptionService.decryptValue(encryptedPassword2, credentialService.getCredentialById(1).getKey());
-
-		homePage.deleteCredential();
-		resultPage.clickHere();
-		homePage.clickNoteTab();
-		assertThrows(NoSuchElementException.class, () -> {homePage.getFirstCredentialUrl();});
+		homePage.logoutUser();
 
 		assertEquals(url, urlFetched);
 		assertEquals(credusername, usernameFetched);
 		assertNotEquals(encryptedPassword, credpassword);
 		assertEquals(credpassword, shouldBeDecryptedString);
 		assertEquals(credpassword, decryptedPassword);
-		assertEquals(credpassword2, changedPassword);
+
 	}
+	@Test
+	@Order(9)
+	public void editCredentialTest(){
+		String credusername = "nammu";
+		String credpassword2 = "qwerty**";
+
+		loginUser();
+
+		HomePage homePage = new HomePage(driver);
+		ResultPage resultPage = new ResultPage(driver);
+
+		homePage.editCredential(credusername, credpassword2);
+		resultPage.clickHere();
+		homePage.clickCredentialTab();
+		String encryptedPassword2 = homePage.getFirstCredentialPassword();
+		String changedPassword = encryptionService.decryptValue(encryptedPassword2, credentialService.getCredentialById(1).getKey());
+		homePage.logoutUser();
+
+		assertEquals(credpassword2, changedPassword);
+
+	}
+	@Test
+	@Order(10)
+	public void deleteCredentialTest(){
+		loginUser();
+
+		HomePage homePage = new HomePage(driver);
+		ResultPage resultPage = new ResultPage(driver);
+
+		homePage.deleteCredential();
+		resultPage.clickHere();
+		homePage.clickNoteTab();
+		assertThrows(NoSuchElementException.class, () -> {homePage.getFirstCredentialUrl();});
+
+	}
+
+
+//	@Test
+//	@Order(8)
+//	public void credentialTest(){
+//		String url = "www.udacity.com";
+//		String credusername = "nammu";
+//		String credpassword = "qwer**";
+//		String credpassword2 = "qwerty**";
+//		signupUser();
+//		loginUser();
+//		HomePage homePage = new HomePage(driver);
+//		ResultPage resultPage = new ResultPage(driver);
+//
+//		homePage.addNewCredential(url, credusername, credpassword);
+//		resultPage.clickHere();
+//		homePage.clickCredentialTab();
+//		String urlFetched = homePage.getFirstCredentialUrl();
+//
+//		String usernameFetched = homePage.getFirstCredentialUsername();
+//		String encryptedPassword = homePage.getFirstCredentialPassword();
+//		String decryptedPassword = encryptionService.decryptValue(encryptedPassword, credentialService.getCredentialById(1).getKey());
+//
+//		WebElement shouldBeDecrypted = homePage.getViewablePassword();
+//		String shouldBeDecryptedString = (String) ((JavascriptExecutor) driver).executeScript("return arguments[0].value", shouldBeDecrypted);
+//
+//		homePage.editCredential(credusername, credpassword2);
+//		resultPage.clickHere();
+//		homePage.clickCredentialTab();
+//		String encryptedPassword2 = homePage.getFirstCredentialPassword();
+//		String changedPassword = encryptionService.decryptValue(encryptedPassword2, credentialService.getCredentialById(1).getKey());
+//
+//		homePage.deleteCredential();
+//		resultPage.clickHere();
+//		homePage.clickNoteTab();
+//		assertThrows(NoSuchElementException.class, () -> {homePage.getFirstCredentialUrl();});
+//
+//		assertEquals(url, urlFetched);
+//		assertEquals(credusername, usernameFetched);
+//		assertNotEquals(encryptedPassword, credpassword);
+//		assertEquals(credpassword, shouldBeDecryptedString);
+//		assertEquals(credpassword, decryptedPassword);
+//		assertEquals(credpassword2, changedPassword);
+//	}
 
 }
