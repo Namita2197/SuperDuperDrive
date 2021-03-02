@@ -39,14 +39,18 @@ public class NoteController {
         User user = userService.getUser(username);
         note.setUserid(user.getUserid());
         if (note.getNoteid()!= null) {
-//            System.out.println("going to update");
-            if (noteService.updateNote(note) > 0) {
+            int val = noteService.updateNote(note);
+            if (val > 0) {
                 return "redirect:/result?success";
-            } else return "redirect:/result?error";
+            }else if(val==0){
+                return "redirect:/result?errorLimit";
+            }else return "redirect:/result?error";
         } else {
-//            System.out.println("going to adde");
-            if (noteService.addNote(note) > 0) {
+            int val = noteService.addNote(note);
+            if ( val> 0) {
                 return "redirect:/result?success";
+            }else if( val==0){
+                return "redirect:/result?errorLimit";
             } else return "redirect:/result?error";
 
         }

@@ -23,6 +23,16 @@
                 <span>File with this name already exists!.</span>
                 <span>Click <a th:href="@{/home}" >here</a> to continue.</span>
             </div>
+            <div th:if="${param.errorLimit}" class="alert alert-danger fill-parent">
+                <h1 class="display-5">Error</h1>
+                <span>Note cannot be more than 1000 characters!</span>
+                <span>Click <a th:href="@{/home}" >here</a> to continue.</span>
+            </div>
+            <div th:if="${param.errorSize}" class="alert alert-danger fill-parent">
+                <h1 class="display-5">Error</h1>
+                <span>File size too big!</span>
+                <span>Click <a th:href="@{/home}" >here</a> to continue.</span>
+            </div>
         </div>
     </body>
 </html>

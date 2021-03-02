@@ -16,9 +16,15 @@ public class NoteService {
     }
 
     public int addNote(Note note){
+        if(note.getNotedescription().length()>1000){
+            return 0;
+        }
         return this.noteMapper.insert(note);
     }
     public int updateNote(Note note){
+        if(note.getNotedescription().length()>1000){
+            return 0;
+        }
         return this.noteMapper.update(note);
     }
     public int deleteNote(int noteid){
